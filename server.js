@@ -1,39 +1,46 @@
-// backend/server.js
 const express = require('express');
-const mongoose = require('mongoose'); // Import mongoose
+const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config(); // Load environment variables from .env file
+require('dotenv').config();
 
 const app = express();
 
-// Database Connection (Embedded)
+// Database Connection
 const connectDB = async () => {
     try {
         await mongoose.connect(process.env.MONGO_URI);
         console.log('MongoDB Connected...');
     } catch (err) {
         console.error(err.message);
-        // Exit process with failure
         process.exit(1);
     }
 };
 
-connectDB(); // Call the connection function
+connectDB(); 
 
-// Init Middleware
-app.use(express.json({ extended: false }));
-app.use(
-    cors({
-      origin: ["http://localhost:5173/", "https://flame-lemon.vercel.app/"], // Allowed origins
-      credentials: true, // Allow credentials (cookies, authorization headers)
-    })
-  );
+// ✅ Apply CORS Middleware **before** defining routes
+const corsOptions = {
+    origin: ['https://flame-lemon.vercel.app', 'http://localhost:5173'],  
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true // ✅ Allow cookies, Authorization headers
+};
+
+app.use(cors(corsOptions));
+
+// ✅ Handle preflight requests manually (important for CORS issues)
+app.options('*', cors(corsOptions));
+
+// ✅ Enable JSON parsing middleware
+app.use(express.json());
+
+// Test Route
 app.get('/', (req, res) => res.send('API Running'));
 
 // Define Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/workspace', require('./routes/workspace'));
-app.use('/api/video', require('./routes/video')); //Video Upload route
+app.use('/api/video', require('./routes/video'));
 
 const PORT = process.env.PORT || 5000;
 
