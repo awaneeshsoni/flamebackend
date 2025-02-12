@@ -22,8 +22,12 @@ connectDB(); // Call the connection function
 
 // Init Middleware
 app.use(express.json({ extended: false }));
-app.use(cors()); // Enable CORS for all routes
-
+app.use(
+    cors({
+      origin: ["http://localhost:5173/", "https://flame-lemon.vercel.app/"], // Allowed origins
+      credentials: true, // Allow credentials (cookies, authorization headers)
+    })
+  );
 app.get('/', (req, res) => res.send('API Running'));
 
 // Define Routes
