@@ -37,8 +37,8 @@ router.get('/', auth, async (req, res) => {
         // Check if user has access to this workspace
         const workspace = await Workspace.findById(workspaceId);
         if (!workspace) return res.status(404).json({ message: 'Workspace not found' });
-        if (workspace.members.includes(req.user.userId) || workspace.creator.toString() !== req.user.userId) {
-            return res.status(403).json({ message: 'Access denied for this workspace you no member no creator' });
+        if (!workspace.members.includes(req.user.userId) && workspace.creator.toString() !== req.user.userId) {
+            return res.status(403).json({ message: 'Access denied for this workspace. You are neither a member nor the creator' });
         }
         const videos = await Video.find({ workspace: workspaceId });
         res.json({ videos });
