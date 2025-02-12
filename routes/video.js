@@ -71,6 +71,26 @@ router.get('/:id', auth, async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+router.get('/share/:id', async (req, res) => {
+    try {
+        const video = await Video.findById(req.params.id);
+        if (!video) return res.status(404).json({ message: 'Video not found' });
+
+        // Check if user has access to this workspace
+        const workspace = await Workspace.findById(video.workspace);
+        if (!workspace) {
+            return res.status(403).json({ message: 'error fetching workspace' });
+        }
+        if (!workspace.members.includes(req.user.userId) && workspace.creator.toString() !== req.user.userId) {
+            return res.status(403).json({ message: "Access denied. Only workspace members and the creator can upload videos." });
+        }
+
+        res.json(video);
+    } catch (err) {
+        console.error('Error fetching video:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 // @route   POST /videos/:id/comments
 // @desc    Add a comment to a video
