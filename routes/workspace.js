@@ -9,8 +9,23 @@ const User = require("../models/User");
 // @access  Private
 router.get("/", auth, async (req, res) => {
     try {
-        const workspaces = await Workspace.find({ creator: req.user.userId });
+        const workspaces = await Workspace.find({ creator: req.user.userId }).populate("members")
+            .populate("creator");
         res.json(workspaces);
+        console.log(workspaces)
+    } catch (error) {
+        console.error("Error fetching workspaces:", error);
+        res.status(500).json({ message: "Failed to fetch workspaces form bakcend" });
+    }
+});
+router.get("/:id", auth, async (req, res) => {
+    try {
+        const workspace = await Workspace.findById({ _id: req.params.id })
+            .populate('members', 'name email username profilePicture') // Populate 'members' and select specific fields
+            .populate('videos', 'title url') // Populate 'videos' and select specific fields
+            .populate('creator', 'name email username ');
+        res.json(workspace);
+        console.log(workspace)
     } catch (error) {
         console.error("Error fetching workspaces:", error);
         res.status(500).json({ message: "Failed to fetch workspaces form bakcend" });
@@ -35,8 +50,8 @@ router.post("/", auth, async (req, res) => {
         await newWorkspace.save();
 
         // Add workspace ID to the user's `workspaces` array
-        await User.findByIdAndUpdate(req.user.userId, { 
-            $push: { workspaces: newWorkspace._id } 
+        await User.findByIdAndUpdate(req.user.userId, {
+            $push: { workspaces: newWorkspace._id }
         });
 
         res.json(newWorkspace);
