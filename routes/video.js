@@ -9,6 +9,7 @@ const multer = require('multer');
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { uploadToAWS, deleteFromAWS } = require('../utils/awsconfig');
 const { uploadToR2, deleteFromR2 } = require('../utils/cloudflareR2');
+import mongoose from 'mongoose';
 
 dotenv.config();
 
