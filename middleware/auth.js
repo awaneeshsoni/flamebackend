@@ -19,7 +19,6 @@ const authMiddle = async (req, res, next) => {
     try {
         const decoded = await jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded.user;
-        console.log(req.user)
         next();
     } catch (err) {
         console.log(token)

@@ -12,7 +12,6 @@ router.get("/", auth, async (req, res) => {
         const workspaces = await Workspace.find({ creator: req.user.userId }).populate("members")
             .populate("creator");
         res.json(workspaces);
-        console.log(workspaces)
     } catch (error) {
         console.error("Error fetching workspaces:", error);
         res.status(500).json({ message: "Failed to fetch workspaces form bakcend" });
@@ -25,7 +24,6 @@ router.get("/:id", auth, async (req, res) => {
             .populate('videos', 'title url') // Populate 'videos' and select specific fields
             .populate('creator', 'name email username ');
         res.json(workspace);
-        console.log(workspace)
     } catch (error) {
         console.error("Error fetching workspaces:", error);
         res.status(500).json({ message: "Failed to fetch workspaces form bakcend" });

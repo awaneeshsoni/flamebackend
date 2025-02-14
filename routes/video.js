@@ -32,7 +32,6 @@ const upload = multer({ storage });
 router.get('/', auth, async (req, res) => {
     try {
         const { workspaceId } = req.query;
-        console.log(workspaceId)
         if (!workspaceId) return res.status(400).json({ message: 'Workspace ID is required' });
         // Check if user has access to this workspace
         const workspace = await Workspace.findById(workspaceId);
@@ -71,17 +70,39 @@ router.get('/:id', auth, async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
-router.get('/share/:id', async (req, res) => {
+// router.get('/share/:id', async (req, res) => {
+//     try {
+//         const video = await Video.findById(req.params.id);
+//         if (!video) return res.status(404).json({ message: 'Video not found' });
+//         res.json(video);
+//     } catch (err) {
+//         console.error('Error fetching video:', err);
+//         res.status(500).json({ message: 'Server error' });
+//         res.alert(err)
+//     }
+// });
+router.get("/share/:id", async (req, res) => {
     try {
-        const video = await Video.findById(req.params.id);
-        if (!video) return res.status(404).json({ message: 'Video not found' });
+        const { id } = req.params;
+
+        // Check if the ID is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid video ID" });
+        }
+
+        const video = await Video.findById(id);
+        if (!video) {
+            console.log("share / error")
+            return res.status(404).json({ message: "Video not found" });
+
+        }
+
         res.json(video);
     } catch (err) {
-        console.error('Error fetching video:', err);
-        res.status(500).json({ message: 'Server error' });
+        console.error("Error fetching video:", err);
+        res.status(500).json({ message: "Server error" });
     }
 });
-
 // @route   POST /videos/:id/comments
 // @desc    Add a comment to a video
 // @access  Private (Must belong to workspace)
