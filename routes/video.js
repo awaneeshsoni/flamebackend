@@ -85,23 +85,67 @@ router.get('/:id', auth, async (req, res) => {
 router.get("/share/:id", async (req, res) => {
     try {
         const { id } = req.params;
-
         // Check if the ID is a valid MongoDB ObjectId
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ message: "Invalid video ID" });
         }
-
         const video = await Video.findById(id);
         if (!video) {
-            console.log("share / error")
+            console.log("share / error");
             return res.status(404).json({ message: "Video not found" });
-
         }
+        // If video is private, return a custom response
+        if (!video.isPublic) {
+            return res.status(403).json({
+                message: "Video is private",
+                statusCode: 403, // Custom code so frontend knows it's private
+            });
+        }
+        // If video is public, return the video details
+        return res.json(video);
 
-        res.json(video);
     } catch (err) {
         console.error("Error fetching video:", err);
-        res.status(500).json({ message: "Server error" });
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+// @route   POST /videos/:id/comments
+// @desc    Add a comment to a video
+// @access  Private (Must belong to workspace)
+router.put('/:id/privacy', auth, async (req, res) => {
+    try {
+        const { isPublic } = req.body; // Extract isPublic from request body
+
+        // Validate that isPublic is a boolean
+        if (typeof isPublic !== "boolean") {
+            return res.status(400).json({ message: "Invalid value for isPublic" });
+        }
+
+        const video = await Video.findById(req.params.id);
+        if (!video) {
+            return res.status(404).json({ message: 'Video not found' });
+        }
+
+        // Update privacy setting
+        video.isPublic = isPublic;
+        await video.save();
+
+        // Prepare the response
+        const response = {
+            message: "Privacy updated successfully",
+            isPublic: video.isPublic
+        };
+
+        // Only include videoUrl if the video is now public
+        if (isPublic) {
+            response.id = video._id;
+        }
+
+        return res.status(200).json(response);
+
+    } catch (error) {
+        console.error('Error updating privacy:', error);
+        return res.status(500).json({ message: 'Failed to update privacy' });
     }
 });
 // @route   POST /videos/:id/comments

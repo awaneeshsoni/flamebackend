@@ -61,6 +61,7 @@ router.post('/login', async (req, res) => {
 
     try {
         let user = await User.findOne({ email });
+        const username = user.name;
 
         if (!user) {
             return res.status(400).json({ message: 'Invalid email or password' });
@@ -80,7 +81,7 @@ router.post('/login', async (req, res) => {
                 console.error("JWT Signing Error:", err);
                 return res.status(500).json({ message: "Token generation failed" });
             }
-            res.json({ token });
+            res.json({ token, username });
         });
 
     } catch (err) {
